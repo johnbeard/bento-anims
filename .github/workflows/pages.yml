@@ -1,0 +1,72 @@
+# Publish every animation to GitHub Pages.
+#
+# The artifact flow (configure-pages -> upload-pages-artifact -> deploy-pages)
+# is the current recommendation: nothing is committed to a gh-pages branch and
+# nothing is built by GitHub's servers, so what ships is exactly the folder
+# scripts/build-site.mjs produced.
+#
+# ONE-TIME REPO SETUP: Settings -> Pages -> Build and deployment ->
+# Source: "GitHub Actions". Without that the deploy job fails with "Pages has
+# not been enabled".
+
+name: Pages
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time. cancel-in-progress stays false so a run that is
+# already publishing is allowed to finish rather than leaving Pages half-updated.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      # The build is dependency-free: no install step, so there is no lockfile
+      # to keep honest and no supply chain to wait on.
+      - name: Build
+        run: node scripts/build-site.mjs
+
+      # Pull requests stop here: they build, so a deck that does not parse fails
+      # review instead of the default branch, but nothing is published.
+      - if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v6
+
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+          # The action excludes dotfiles unless asked (v5 defaults it to
+          # false), which would silently drop _site/.nojekyll from what ships.
+          # Publishing the folder exactly as it was built keeps the artifact
+          # and the build from disagreeing.
+          include-hidden-files: true
+
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

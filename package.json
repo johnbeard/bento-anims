@@ -1,0 +1,15 @@
+{
+  "name": "bento-anims",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Small, self-contained animation samples made with bento/slides",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/build-site.mjs",
+    "serve": "node scripts/serve-site.mjs",
+    "dev": "node scripts/build-site.mjs && node scripts/serve-site.mjs"
+  }
+}
