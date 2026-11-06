@@ -5,6 +5,7 @@ animation is one self-contained HTML file: the deck, its viewer and its editor.
 
 ## List of animations
 
+- [Heartbeat](https://johnbeard.github.io/bento-anims/anims/heartbeat/)
 - [Wave Text](https://johnbeard.github.io/bento-anims/anims/wave-text/)
 
 ## What gets published
@@ -47,6 +48,37 @@ with at least one slide, and fails rather than guessing when something is wrong:
   from the site unnoticed
 - two files that resolve to the same address fail the build, rather than one
   silently winning
+
+## Regenerating a deck from its script
+
+A deck whose geometry or motion is computed keeps its generator beside it, at
+`anims/<name>/scripts/`. The script is the source and the `.bento.html` is the
+artifact, so the numbers worth changing sit in one tuning block near the top of
+the script rather than in the generated document:
+
+```sh
+npm run gen:heartbeat                # rewrite the deck
+npm run gen:heartbeat -- --check     # is the checked-in deck stale?
+npm run gen:heartbeat -- --force     # discard changes made in the app
+
+npm run gen:wave-text                # same, for wave-text
+```
+
+Why each deck has one:
+
+- **heartbeat** draws its keyframe stops from the waveform's own arc length,
+  which is what keeps the pen on a constant horizontal speed. Nobody can keep
+  that up to date by hand when the waveform changes.
+- **wave-text** was authored directly in the file before the repo kept
+  generators. Its script was reconstructed from the deck and reproduces it byte
+  for byte, so the line, its size and the crest palette have one source of
+  truth instead of three (theme, element, CSS custom properties).
+
+Both use `scripts/generate-lib.mjs`. A re-run replaces the whole document, so a
+deck that has been saved from the editor is refused rather than silently
+flattened. The file records a hash of the document it was generated from, and a
+mismatch means the app stored something the script does not know about: move
+that change into the script, or pass `--force` to accept losing it.
 
 ## Preview locally
 

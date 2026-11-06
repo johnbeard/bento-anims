@@ -10,6 +10,8 @@
   "scripts": {
     "build": "node scripts/build-site.mjs",
     "serve": "node scripts/serve-site.mjs",
-    "dev": "node scripts/build-site.mjs && node scripts/serve-site.mjs"
+    "dev": "node scripts/build-site.mjs && node scripts/serve-site.mjs",
+    "gen:heartbeat": "node anims/heartbeat/scripts/gen-heartbeat.mjs",
+    "gen:wave-text": "node anims/wave-text/scripts/gen-wave-text.mjs"
   }
 }
